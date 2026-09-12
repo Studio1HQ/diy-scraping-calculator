@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-ink text-paper font-sans antialiased;
+  }
+
+  h1 {
+    @apply font-sans font-semibold;
+  }
+
+  h2 {
+    @apply font-sans font-semibold;
+  }
+
+  button {
+    @apply font-sans;
+  }
+
+  input,
+  textarea {
+    @apply font-sans;
+  }
+}
+
+@layer components {
+  .container-content {
+    @apply mx-auto max-w-content px-6;
+  }
+
+  .label-text {
+    @apply text-sm font-medium text-paper;
+  }
+
+  .currency-value {
+    @apply font-mono text-lg font-semibold text-paper;
+  }
+
+  .currency-label {
+    @apply font-mono text-base text-paper;
+  }
+}
+
