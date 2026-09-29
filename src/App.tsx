@@ -1,13 +1,15 @@
-import { useState } from 'react'
+import { useState } from "react";
 import {
   calculateDIYCost,
   calculateSearchApiCost,
+  getSearchApiTier,
   generateChartData,
   formatCurrency,
   formatPercentage,
-} from './calculations'
-import type { ProxyTier, CalculatorInputs } from './types'
-import { PROXY_TIERS } from './types'
+  formatVolumeLabel,
+} from "./calculations";
+import type { ProxyTier, CalculatorInputs } from "./types";
+import { PROXY_TIERS } from "./types";
 import {
   ComposedChart,
   Line,
@@ -17,7 +19,8 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-} from 'recharts'
+  ReferenceLine,
+} from "recharts";
 import {
   Calculator,
   Sliders,
@@ -33,16 +36,16 @@ import {
   ArrowUpRight,
   Cpu,
   Layers,
-} from 'lucide-react'
+} from "lucide-react";
 
 function App() {
   // State for all 5 input controls
-  const [searchVolume, setSearchVolume] = useState(25_000)
-  const [proxyTier, setProxyTier] = useState<ProxyTier>('mid')
-  const [captchaTriggerRate, setCaptchaTriggerRate] = useState(0.1)
-  const [hourlyRate, setHourlyRate] = useState(50)
-  const [maintenanceHours, setMaintenanceHours] = useState(4)
-  const [hostingCost, setHostingCost] = useState(30)
+  const [searchVolume, setSearchVolume] = useState(25_000);
+  const [proxyTier, setProxyTier] = useState<ProxyTier>("mid");
+  const [captchaTriggerRate, setCaptchaTriggerRate] = useState(0.1);
+  const [hourlyRate, setHourlyRate] = useState(50);
+  const [maintenanceHours, setMaintenanceHours] = useState(4);
+  const [hostingCost, setHostingCost] = useState(30);
 
   // Build inputs object for calculations
   const inputs: CalculatorInputs = {
@@ -52,27 +55,27 @@ function App() {
     hourlyRate,
     maintenanceHours,
     hostingCost,
-  }
+  };
 
   // Calculate costs
-  const diyBreakdown = calculateDIYCost(inputs)
-  const searchApiCost = calculateSearchApiCost(searchVolume)
-  const chartData = generateChartData(inputs)
+  const diyBreakdown = calculateDIYCost(inputs);
+  const searchApiCost = calculateSearchApiCost(searchVolume);
+  const chartData = generateChartData(inputs);
 
   // Determine which is cheaper
-  const diyIsCheaper = diyBreakdown.totalMonthly < searchApiCost.monthly
+  const diyIsCheaper = diyBreakdown.totalMonthly < searchApiCost.monthly;
 
   // Log-scale value for volume slider
-  const volumeMin = 1_000
-  const volumeMax = 1_000_000
+  const volumeMin = 1_000;
+  const volumeMax = 1_000_000;
 
   // Quick preset buttons
   const volumePresets = [
-    { label: '10K', value: 10_000 },
-    { label: '50K', value: 50_000 },
-    { label: '250K', value: 250_000 },
-    { label: '1M', value: 1_000_000 },
-  ]
+    { label: "10K", value: 10_000 },
+    { label: "50K", value: 50_000 },
+    { label: "250K", value: 250_000 },
+    { label: "1M", value: 1_000_000 },
+  ];
 
   return (
     <div className="min-h-screen bg-ink text-paper py-10 px-4 md:px-8 selection:bg-buy/30 selection:text-paper">
@@ -92,7 +95,9 @@ function App() {
               DIY vs. Buy: Google Scraping Costs
             </h1>
             <p className="text-sm md:text-base text-paper/60 max-w-2xl">
-              Compare the hidden operational costs of building & maintaining your own SERP scraper against SearchApi's predictable, zero-maintenance scale.
+              Compare the hidden operational costs of building & maintaining
+              your own SERP scraper against SearchApi's predictable,
+              zero-maintenance scale.
             </p>
           </div>
 
@@ -105,11 +110,13 @@ function App() {
               <div className="text-sm font-bold text-paper flex items-center gap-1.5 mt-0.5">
                 {diyIsCheaper ? (
                   <span className="text-diy flex items-center gap-1">
-                    <CheckCircle2 className="w-4 h-4 text-diy" /> DIY is cheaper at this scale
+                    <CheckCircle2 className="w-4 h-4 text-diy" /> DIY is cheaper
+                    at this scale
                   </span>
                 ) : (
                   <span className="text-buy flex items-center gap-1">
-                    <CheckCircle2 className="w-4 h-4 text-buy" /> Buying SearchApi saves time & money
+                    <CheckCircle2 className="w-4 h-4 text-buy" /> Buying
+                    SearchApi saves time & money
                   </span>
                 )}
               </div>
@@ -137,7 +144,8 @@ function App() {
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <label className="text-sm font-semibold text-slate-300 flex items-center gap-1.5">
-                  <BarChart3 className="w-4 h-4 text-buy" /> Monthly search volume
+                  <BarChart3 className="w-4 h-4 text-buy" /> Monthly search
+                  volume
                 </label>
                 <span className="font-mono text-base font-bold text-buy bg-buy/10 px-3 py-1 rounded-lg border border-buy/20">
                   {searchVolume.toLocaleString()} searches
@@ -150,7 +158,9 @@ function App() {
                   max={Math.log(volumeMax)}
                   step={0.01}
                   value={Math.log(searchVolume)}
-                  onChange={(e) => setSearchVolume(Math.exp(parseFloat(e.target.value)))}
+                  onChange={(e) =>
+                    setSearchVolume(Math.exp(parseFloat(e.target.value)))
+                  }
                   className="w-full h-2 bg-ink/40 rounded-lg cursor-pointer appearance-none accent-buy focus:ring-2 focus:ring-buy focus:outline-none"
                 />
                 <div className="flex justify-between text-xs font-mono text-paper/50">
@@ -168,8 +178,8 @@ function App() {
                     onClick={() => setSearchVolume(preset.value)}
                     className={`py-1.5 px-2 rounded-lg text-xs font-mono font-medium transition-all border ${
                       searchVolume === preset.value
-                        ? 'bg-buy/20 text-buy border-buy/40 shadow-sm'
-                        : 'bg-paper/5 text-paper/60 border-paper/5 hover:bg-paper/10 hover:text-paper'
+                        ? "bg-buy/20 text-buy border-buy/40 shadow-sm"
+                        : "bg-paper/5 text-paper/60 border-paper/5 hover:bg-paper/10 hover:text-paper"
                     }`}
                   >
                     {preset.label}
@@ -184,23 +194,27 @@ function App() {
                 <Server className="w-4 h-4 text-buy" /> Proxy tier quality
               </label>
               <div className="grid grid-cols-3 gap-2.5">
-                {(['budget', 'mid', 'enterprise'] as const).map((tier) => {
-                  const tierConfig = PROXY_TIERS[tier]
-                  const isSelected = proxyTier === tier
+                {(["budget", "mid", "enterprise"] as const).map((tier) => {
+                  const tierConfig = PROXY_TIERS[tier];
+                  const isSelected = proxyTier === tier;
                   return (
                     <button
                       key={tier}
                       onClick={() => setProxyTier(tier)}
                       className={`p-3 rounded-xl font-medium transition-all text-left flex flex-col justify-between border ${
                         isSelected
-                      ? 'bg-buy/20 border-buy text-paper shadow-lg shadow-buy/10'
-                        : 'bg-paper/5 border-paper/5 text-paper/60 hover:bg-paper/10 hover:text-paper/70'
+                          ? "bg-buy/20 border-buy text-paper shadow-lg shadow-buy/10"
+                          : "bg-paper/5 border-paper/5 text-paper/60 hover:bg-paper/10 hover:text-paper/70"
                       } focus:outline-none`}
                     >
-                      <div className="text-xs font-semibold text-paper mb-1">{tierConfig.name}</div>
-                      <div className="text-xs font-mono text-buy">${tierConfig.costPerGB}/GB</div>
+                      <div className="text-xs font-semibold text-paper mb-1">
+                        {tierConfig.name}
+                      </div>
+                      <div className="text-xs font-mono text-buy">
+                        ${tierConfig.costPerGB}/GB
+                      </div>
                     </button>
-                  )
+                  );
                 })}
               </div>
             </div>
@@ -209,7 +223,8 @@ function App() {
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <label className="text-sm font-semibold text-slate-300 flex items-center gap-1.5">
-                  <ShieldAlert className="w-4 h-4 text-diy" /> CAPTCHA trigger rate
+                  <ShieldAlert className="w-4 h-4 text-diy" /> CAPTCHA trigger
+                  rate
                 </label>
                 <span className="font-mono text-sm font-bold text-paper/70 bg-paper/5 px-2.5 py-0.5 rounded border border-paper/5">
                   {formatPercentage(captchaTriggerRate)}
@@ -221,8 +236,10 @@ function App() {
                 max="0.25"
                 step="0.001"
                 value={captchaTriggerRate}
-                onChange={(e) => setCaptchaTriggerRate(parseFloat(e.target.value))}
-                  className="w-full h-2 bg-ink/40 rounded-lg cursor-pointer appearance-none accent-diy focus:ring-2 focus:ring-diy focus:outline-none"
+                onChange={(e) =>
+                  setCaptchaTriggerRate(parseFloat(e.target.value))
+                }
+                className="w-full h-2 bg-ink/40 rounded-lg cursor-pointer appearance-none accent-diy focus:ring-2 focus:ring-diy focus:outline-none"
               />
               <div className="flex justify-between text-xs font-mono text-slate-500">
                 <span>0% (Clean IP)</span>
@@ -235,7 +252,8 @@ function App() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-slate-300 flex items-center gap-1">
-                  <DollarSign className="w-3.5 h-3.5 text-slate-400" /> Hourly rate ($)
+                  <DollarSign className="w-3.5 h-3.5 text-slate-400" /> Hourly
+                  rate ($)
                 </label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-paper/50 text-sm font-mono">
@@ -244,7 +262,9 @@ function App() {
                   <input
                     type="number"
                     value={hourlyRate}
-                    onChange={(e) => setHourlyRate(Math.max(0, parseInt(e.target.value) || 0))}
+                    onChange={(e) =>
+                      setHourlyRate(Math.max(0, parseInt(e.target.value) || 0))
+                    }
                     className="w-full pl-7 pr-3 py-2 bg-paper/5 border border-paper/10 rounded-xl text-paper font-mono text-sm placeholder:text-paper/40 focus:ring-2 focus:ring-buy focus:outline-none"
                     min="0"
                   />
@@ -253,12 +273,17 @@ function App() {
 
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-slate-300 flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-slate-400" /> Maint. hours/mo
+                  <Clock className="w-3.5 h-3.5 text-slate-400" /> Maint.
+                  hours/mo
                 </label>
                 <input
                   type="number"
                   value={maintenanceHours}
-                  onChange={(e) => setMaintenanceHours(Math.max(0, parseFloat(e.target.value) || 0))}
+                  onChange={(e) =>
+                    setMaintenanceHours(
+                      Math.max(0, parseFloat(e.target.value) || 0),
+                    )
+                  }
                   className="w-full px-3 py-2 bg-paper/5 border border-paper/10 rounded-xl text-paper font-mono text-sm placeholder:text-paper/40 focus:ring-2 focus:ring-buy focus:outline-none"
                   min="0"
                   step="0.5"
@@ -269,7 +294,8 @@ function App() {
             {/* Hosting cost */}
             <div className="space-y-2">
               <label className="text-xs font-semibold text-slate-300 flex items-center gap-1">
-                <Cpu className="w-3.5 h-3.5 text-slate-400" /> Monthly cloud hosting & infra cost ($)
+                <Cpu className="w-3.5 h-3.5 text-slate-400" /> Monthly cloud
+                hosting & infra cost ($)
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-mono">
@@ -278,7 +304,9 @@ function App() {
                 <input
                   type="number"
                   value={hostingCost}
-                  onChange={(e) => setHostingCost(Math.max(0, parseFloat(e.target.value) || 0))}
+                  onChange={(e) =>
+                    setHostingCost(Math.max(0, parseFloat(e.target.value) || 0))
+                  }
                   className="w-full pl-7 pr-3 py-2 bg-white/5 border border-white/10 rounded-xl text-white font-mono text-sm placeholder:text-slate-600 focus:ring-2 focus:ring-buy focus:outline-none"
                   min="0"
                   step="0.01"
@@ -295,8 +323,8 @@ function App() {
               <div
                 className={`rounded-2xl p-6 md:p-7 backdrop-blur-xl transition-all relative overflow-hidden flex flex-col justify-between border ${
                   diyIsCheaper
-                    ? 'bg-gradient-to-br from-diy/15 via-ink to-ink border-2 border-diy shadow-xl shadow-diy/10'
-                    : 'bg-ink/80 border border-paper/10 shadow-lg'
+                    ? "bg-gradient-to-br from-diy/15 via-ink to-ink border-2 border-diy shadow-xl shadow-diy/10"
+                    : "bg-ink/80 border border-paper/10 shadow-lg"
                 }`}
               >
                 {diyIsCheaper && (
@@ -310,14 +338,18 @@ function App() {
                     <div className="p-2 bg-diy/10 rounded-lg text-diy">
                       <Layers className="w-5 h-5" />
                     </div>
-                    <h3 className="text-base font-bold text-paper">Build It Yourself (DIY)</h3>
+                    <h3 className="text-base font-bold text-paper">
+                      Build It Yourself (DIY)
+                    </h3>
                   </div>
 
                   <div className="space-y-1 mb-5">
                     <div className="text-3xl md:text-4xl font-extrabold font-mono text-white tracking-tight">
                       {formatCurrency(diyBreakdown.totalMonthly)}
                     </div>
-                    <div className="text-xs text-paper/60 font-medium">Estimated monthly expenditure</div>
+                    <div className="text-xs text-paper/60 font-medium">
+                      Estimated monthly expenditure
+                    </div>
                   </div>
 
                   <div className="text-xs text-slate-300 bg-white/5 rounded-xl p-3 border border-white/5 mb-5 flex justify-between items-center">
@@ -331,7 +363,9 @@ function App() {
                   <div className="space-y-2 pt-2 border-t border-paper/10">
                     <div className="text-xs font-semibold text-paper/60 flex justify-between">
                       <span>Cost Breakdown</span>
-                      <span className="text-[10px] text-paper/50">Bandwidth / CAPTCHA / Maint / Host</span>
+                      <span className="text-[10px] text-paper/50">
+                        Bandwidth / CAPTCHA / Maint / Host
+                      </span>
                     </div>
 
                     <div className="flex h-3.5 rounded-full overflow-hidden bg-ink/40 p-0.5 border border-paper/5">
@@ -367,27 +401,48 @@ function App() {
 
                     <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs pt-2">
                       <div className="flex justify-between text-slate-300">
-                        <span className="text-paper/60 flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-diy"></span> Bandwidth</span>
-                        <span className="font-mono">{formatCurrency(diyBreakdown.bandwidthCost)}</span>
+                        <span className="text-paper/60 flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-full bg-diy"></span>{" "}
+                          Bandwidth
+                        </span>
+                        <span className="font-mono">
+                          {formatCurrency(diyBreakdown.bandwidthCost)}
+                        </span>
                       </div>
                       <div className="flex justify-between text-slate-300">
-                        <span className="text-paper/60 flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500"></span> CAPTCHA</span>
-                        <span className="font-mono">{formatCurrency(diyBreakdown.captchaCost)}</span>
+                        <span className="text-paper/60 flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-full bg-amber-500"></span>{" "}
+                          CAPTCHA
+                        </span>
+                        <span className="font-mono">
+                          {formatCurrency(diyBreakdown.captchaCost)}
+                        </span>
                       </div>
                       <div className="flex justify-between text-slate-300">
-                        <span className="text-paper/60 flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-orange-600"></span> Maint.</span>
-                        <span className="font-mono">{formatCurrency(diyBreakdown.maintenanceCost)}</span>
+                        <span className="text-paper/60 flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-full bg-orange-600"></span>{" "}
+                          Maint.
+                        </span>
+                        <span className="font-mono">
+                          {formatCurrency(diyBreakdown.maintenanceCost)}
+                        </span>
                       </div>
                       <div className="flex justify-between text-slate-300">
-                        <span className="text-paper/60 flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-teal-600"></span> Hosting</span>
-                        <span className="font-mono">{formatCurrency(diyBreakdown.hostingCost)}</span>
+                        <span className="text-paper/60 flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-full bg-teal-600"></span>{" "}
+                          Hosting
+                        </span>
+                        <span className="font-mono">
+                          {formatCurrency(diyBreakdown.hostingCost)}
+                        </span>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 <div className="text-[11px] text-slate-500 pt-4 mt-4 border-t border-white/5 flex items-center gap-1">
-                  <Info className="w-3.5 h-3.5 text-paper/60 shrink-0" /> Includes engineering hours, proxy bandwidth & retries.
+                  <Info className="w-3.5 h-3.5 text-paper/60 shrink-0" />{" "}
+                  Includes engineering hours, proxy bandwidth & retries.
                 </div>
               </div>
 
@@ -395,8 +450,8 @@ function App() {
               <div
                 className={`rounded-2xl p-6 md:p-7 backdrop-blur-xl transition-all relative overflow-hidden flex flex-col justify-between border ${
                   !diyIsCheaper
-                    ? 'bg-gradient-to-br from-buy/15 via-ink to-ink border-2 border-buy shadow-xl shadow-buy/10'
-                    : 'bg-ink/80 border border-paper/10 shadow-lg'
+                    ? "bg-gradient-to-br from-buy/15 via-ink to-ink border-2 border-buy shadow-xl shadow-buy/10"
+                    : "bg-ink/80 border border-paper/10 shadow-lg"
                 }`}
               >
                 {!diyIsCheaper && (
@@ -410,14 +465,18 @@ function App() {
                     <div className="p-2 bg-buy/10 rounded-lg text-buy">
                       <Zap className="w-5 h-5" />
                     </div>
-                    <h3 className="text-base font-bold text-paper">SearchApi Cloud</h3>
+                    <h3 className="text-base font-bold text-paper">
+                      SearchApi Cloud
+                    </h3>
                   </div>
 
                   <div className="space-y-1 mb-5">
                     <div className="text-3xl md:text-4xl font-extrabold font-mono text-white tracking-tight">
                       {formatCurrency(searchApiCost.monthly)}
                     </div>
-                    <div className="text-xs text-paper/60 font-medium">Predictable monthly billing</div>
+                    <div className="text-xs text-paper/60 font-medium">
+                      Predictable monthly billing
+                    </div>
                   </div>
 
                   <div className="text-xs text-slate-300 bg-white/5 rounded-xl p-3 border border-white/5 mb-5 flex justify-between items-center">
@@ -428,18 +487,26 @@ function App() {
                   </div>
 
                   <div className="space-y-2.5 pt-2 border-t border-paper/10">
-                    <div className="text-xs font-semibold text-paper/60">Key Benefits & Pricing Tiers</div>
+                    <div className="text-xs font-semibold text-paper/60">
+                      Key Benefits & Pricing Tiers
+                    </div>
                     <div className="text-xs space-y-1.5 text-paper/80 bg-paper/5 p-3 rounded-xl border border-paper/5">
                       <div className="flex items-center gap-1.5 text-buy font-medium">
-                        <CheckCircle2 className="w-3.5 h-3.5" /> Zero proxies, zero CAPTCHAs to manage
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Zero proxies,
+                        zero CAPTCHAs to manage
                       </div>
                       <div className="flex items-center gap-1.5 text-buy font-medium">
-                        <CheckCircle2 className="w-3.5 h-3.5" /> 99.9% uptime SLA & fast JSON APIs
+                        <CheckCircle2 className="w-3.5 h-3.5" /> 99.9% uptime
+                        SLA & fast JSON APIs
                       </div>
                       <div className="pt-1 text-[11px] text-paper/60 border-t border-paper/5 flex justify-between">
                         <span>Tier rate applied:</span>
                         <span className="font-mono text-paper font-semibold">
-                          ${searchVolume <= 10_000 ? '4.00' : searchVolume <= 50_000 ? '2.50' : searchVolume <= 500_000 ? '1.80' : '1.00'} / 1k requests
+                          $
+                          {getSearchApiTier(searchVolume).ratePer1000.toFixed(
+                            2,
+                          )}{" "}
+                          / 1k requests
                         </span>
                       </div>
                     </div>
@@ -447,7 +514,8 @@ function App() {
                 </div>
 
                 <div className="text-[11px] text-slate-500 pt-4 mt-4 border-t border-white/5 flex items-center gap-1">
-                  <Info className="w-3.5 h-3.5 text-paper/60 shrink-0" /> Pay-as-you-go volume pricing with instant scalability.
+                  <Info className="w-3.5 h-3.5 text-paper/60 shrink-0" />{" "}
+                  Pay-as-you-go volume pricing with instant scalability.
                 </div>
               </div>
             </div>
@@ -460,18 +528,29 @@ function App() {
                 </div>
                 <div>
                   <div className="text-sm font-bold text-paper">
-                    {diyIsCheaper ? 'DIY saves you money at this specific volume' : 'SearchApi saves engineering headaches & capital'}
+                    {diyIsCheaper
+                      ? "DIY saves you money at this specific volume"
+                      : "SearchApi saves engineering headaches & capital"}
                   </div>
                   <div className="text-xs text-slate-400">
-                    Difference of <span className="font-mono font-semibold text-paper">{formatCurrency(Math.abs(diyBreakdown.totalMonthly - searchApiCost.monthly))} / month</span> in operational outlays.
+                    Difference of{" "}
+                    <span className="font-mono font-semibold text-paper">
+                      {formatCurrency(
+                        Math.abs(
+                          diyBreakdown.totalMonthly - searchApiCost.monthly,
+                        ),
+                      )}{" "}
+                      / month
+                    </span>{" "}
+                    in operational outlays.
                   </div>
                 </div>
               </div>
               <a
-                href="https://www.searchapi.io"
+                href="https://www.searchapi.io/?utm_source=Dev&utm_medium=Ambassador&utm_campaign=studio1hq.com"
                 target="_blank"
                 rel="noreferrer"
-                  className="px-5 py-2.5 bg-buy text-ink font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-buy/90 transition-all shadow-lg shadow-buy/20 shrink-0"
+                className="px-5 py-2.5 bg-buy text-ink font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-buy/90 transition-all shadow-lg shadow-buy/20 shrink-0"
               >
                 Explore SearchApi
               </a>
@@ -481,14 +560,15 @@ function App() {
 
         {/* Comparison Chart Section */}
         <div className="bg-ink/80 backdrop-blur-xl border border-paper/10 rounded-2xl p-6 md:p-8 shadow-2xl space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-paper/10 pb-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-paper/10 pb-5">
             <div>
               <h2 className="text-xl font-bold text-paper flex items-center gap-2">
                 <TrendingUp className="w-5 h-5 text-buy" />
                 Cost Scaling Across Search Volumes
               </h2>
               <p className="text-sm text-paper/60 mt-0.5">
-                Observe how DIY maintenance and proxy scaling costs diverge from SearchApi tiered pricing as query volume increases.
+                Observe how DIY maintenance and proxy scaling costs diverge from
+                SearchApi tiered pricing as query volume increases.
               </p>
             </div>
             <div className="flex items-center gap-4 text-xs font-mono">
@@ -505,31 +585,55 @@ function App() {
 
           <div className="w-full h-96 pt-2">
             <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.06)" />
+              <ComposedChart
+                data={chartData}
+                margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="rgba(255, 255, 255, 0.06)"
+                />
+                <ReferenceLine
+                  x={searchVolume}
+                  stroke="rgba(255, 255, 255, 0.3)"
+                  strokeDasharray="5 5"
+                  ifOverflow="extendDomain"
+                />
                 <XAxis
-                  dataKey="volumeLabel"
-                  tick={{ fill: '#E9EDF2', fontSize: 12 }}
+                  type="number"
+                  dataKey="volume"
+                  domain={[1_000, 1_000_000]}
+                  scale="log"
+                  tickFormatter={(value) => formatVolumeLabel(value)}
+                  tick={{ fill: "#E9EDF2", fontSize: 12 }}
                   stroke="rgba(233, 237, 242, 0.1)"
                 />
                 <YAxis
                   tickFormatter={(value) => `$${(value / 1000).toFixed(0)}K`}
-                  tick={{ fill: '#E9EDF2', fontSize: 12 }}
+                  tick={{ fill: "#E9EDF2", fontSize: 12 }}
                   stroke="rgba(233, 237, 242, 0.1)"
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#12181F',
-                    border: '1px solid rgba(233, 237, 242, 0.15)',
-                    borderRadius: '12px',
-                    boxShadow: '0 20px 25px -5px rgb(0 0 / 0.5)',
+                    backgroundColor: "#12181F",
+                    border: "1px solid rgba(233, 237, 242, 0.15)",
+                    borderRadius: "12px",
+                    boxShadow: "0 20px 25px -5px rgb(0 0 / 0.5)",
                   }}
-                  labelStyle={{ color: '#E9EDF2', fontWeight: 'bold', marginBottom: '4px' }}
-                  formatter={(value: number) => [formatCurrency(value), '']}
-                  wrapperStyle={{ outline: 'none' }}
+                  labelStyle={{
+                    color: "#E9EDF2",
+                    fontWeight: "bold",
+                    marginBottom: "4px",
+                  }}
+                  formatter={(value: number) => [formatCurrency(value), ""]}
+                  wrapperStyle={{ outline: "none" }}
                 />
                 <Legend
-                  wrapperStyle={{ paddingTop: '20px', color: '#E9EDF2', fontSize: '13px' }}
+                  wrapperStyle={{
+                    paddingTop: "20px",
+                    color: "#E9EDF2",
+                    fontSize: "13px",
+                  }}
                   iconType="circle"
                 />
                 <Line
@@ -557,12 +661,18 @@ function App() {
 
         {/* Footer note */}
         <footer className="text-center text-xs text-paper/50 pb-6 border-t border-paper/5 pt-6 space-y-1">
-          <p>Calculations are based on typical Google SERP scraping patterns, bandwidth overhead, and average engineering maintenance rates.</p>
-          <p>© {new Date().getFullYear()} Scraping Calculator & ROI Analyzer. Built with React, Tailwind CSS & Recharts.</p>
+          <p>
+            Calculations are based on typical Google SERP scraping patterns,
+            bandwidth overhead, and average engineering maintenance rates.
+          </p>
+          <p>
+            © {new Date().getFullYear()} Scraping Calculator & ROI Analyzer.
+            Built with React, Tailwind CSS & Recharts.
+          </p>
         </footer>
       </div>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

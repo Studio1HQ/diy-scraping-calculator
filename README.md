@@ -19,7 +19,8 @@ This single-page React widget helps teams understand the hidden operational cost
 
 - Monthly and annualized cost comparison (DIY vs. SearchApi)
 - Visual cost breakdown (bandwidth, CAPTCHA, maintenance, hosting)
-- Line chart showing cost curves across volume ranges
+- Log-scale volume chart showing cost curves across a fixed comparison range
+- Selected-volume reference marker highlighting the active volume on the chart
 - Dynamic recommendation based on current settings
 
 ## Tech Stack
@@ -136,12 +137,13 @@ apiAnnualCost = apiMonthlyCost × 12
 
 1. **Live Updates** — No submit button; all calculations reflect input changes instantly
 2. **Log-Scale Volume Slider** — Intuitive control across 1K–1M range
-3. **Cost Breakdown** — Stacked visualization showing proportion of each cost component
-4. **Comparison Chart** — Line chart showing DIY vs. SearchApi costs across fixed volume points
-5. **Annualization** — Both monthly and annual figures to emphasize compounding maintenance cost
-6. **Colorblind-Safe** — Amber + cyan + opacity variations, not relying on red/green alone
-7. **Keyboard Accessible** — All inputs have visible focus states, proper labels
-8. **Fully Responsive** — Seamless experience from mobile to desktop
+3. **Selected-Volume Marker** — Vertical chart reference line highlights the current search volume
+4. **Cost Breakdown** — Stacked visualization showing proportion of each cost component
+5. **Comparison Chart** — Line chart showing DIY vs. SearchApi costs across a benchmark volume range
+6. **Annualization** — Both monthly and annual figures to emphasize compounding maintenance cost
+7. **Colorblind-Safe** — Amber + cyan + opacity variations, not relying on red/green alone
+8. **Keyboard Accessible** — All inputs have visible focus states, proper labels
+9. **Fully Responsive** — Seamless experience from mobile to desktop
 
 ## Linting
 
@@ -156,8 +158,9 @@ ESLint configured for TypeScript and React best practices.
 - All calculations are client-side; no backend or API integration
 - Numbers are formatted as USD currency (adapts to locale via `Intl.NumberFormat`)
 - Proxy and CAPTCHA costs are based on typical provider rates; your actual costs may vary
-- The calculator assumes 200KB per search request and 25% request retry rate for failed connections
+- The calculator assumes 200KB per search request and 1.25x retry overhead for failed or repeated connections
 - Maintenance hours default to 4/month but should be customized based on your team's actual upkeep time
+- The comparison chart intentionally keeps a fixed benchmark scale while highlighting the current volume with a reference line for easier reading
 
 ## Future Enhancements
 

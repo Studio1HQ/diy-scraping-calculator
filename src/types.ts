@@ -6,7 +6,7 @@ export interface ProxyTierConfig {
 }
 
 export const PROXY_TIERS: Record<ProxyTier, ProxyTierConfig> = {
-  budget: { name: 'Budget', costPerGB: 2 },
+  "budget": { name: 'Budget', costPerGB: 2 },
   mid: { name: 'Mid-market', costPerGB: 4.5 },
   enterprise: { name: 'Enterprise', costPerGB: 9 },
 }

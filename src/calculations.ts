@@ -57,20 +57,23 @@ export function calculateDIYCost(inputs: CalculatorInputs): CostBreakdown {
  * - Up to 500,000: $1.80 per 1000
  * - 500,000+: $1.00 per 1000
  */
+export const SEARCH_API_TIERS: SearchApiTierData[] = [
+  { upTo: 10_000, ratePer1000: 4.0 },
+  { upTo: 50_000, ratePer1000: 2.5 },
+  { upTo: 500_000, ratePer1000: 1.8 },
+  { upTo: Infinity, ratePer1000: 1.0 },
+]
+
+export function getSearchApiTier(searchVolume: number): SearchApiTierData {
+  return (
+    SEARCH_API_TIERS.find((t) => searchVolume <= t.upTo) ??
+    SEARCH_API_TIERS[SEARCH_API_TIERS.length - 1]
+  )
+}
+
 export function calculateSearchApiCost(searchVolume: number): SearchApiCost {
-  const SEARCH_API_TIERS: SearchApiTierData[] = [
-    { upTo: 10_000, ratePer1000: 4.0 },
-    { upTo: 50_000, ratePer1000: 2.5 },
-    { upTo: 500_000, ratePer1000: 1.8 },
-    { upTo: Infinity, ratePer1000: 1.0 },
-  ]
-
-  const tier = SEARCH_API_TIERS.find((t) => searchVolume <= t.upTo)
-  if (!tier) {
-    throw new Error('No pricing tier found for volume')
-  }
-
-  const monthly = (searchVolume / 1000) * tier.ratePer1000
+  const tier = getSearchApiTier(searchVolume)
+  const monthly = (Math.max(0, searchVolume) / 1000) * tier.ratePer1000
 
   return {
     monthly,
@@ -83,7 +86,8 @@ export function calculateSearchApiCost(searchVolume: number): SearchApiCost {
  * Uses user's current proxy tier and other settings
  */
 export function generateChartData(inputs: CalculatorInputs): ChartDataPoint[] {
-  const volumes = [1_000, 5_000, 10_000, 25_000, 50_000, 100_000, 250_000, 500_000, 1_000_000]
+  const baselineVolumes = [1_000, 5_000, 10_000, 25_000, 50_000, 100_000, 250_000, 500_000, 1_000_000]
+  const volumes = Array.from(new Set([...baselineVolumes, inputs.searchVolume])).sort((a, b) => a - b)
 
   return volumes.map((volume) => {
     const diyInputs: CalculatorInputs = { ...inputs, searchVolume: volume }
